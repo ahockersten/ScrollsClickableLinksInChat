@@ -17,6 +17,7 @@ namespace ClickableLinksInChat.mod {
         private GUIStyle timeStampStyle;
         private GUIStyle chatLogStyle;
         private Regex linkFinder;
+        private Dictionary<ChatRooms.RoomLog, Dictionary<ChatRooms.ChatLine, string>> roomLinkCache = new Dictionary<ChatRooms.RoomLog, Dictionary<ChatRooms.ChatLine, string>>();
 
         public ClickableLinksInChat() {
             // from http://daringfireball.net/2010/07/improved_regex_for_matching_urls
@@ -36,7 +37,8 @@ namespace ClickableLinksInChat.mod {
         public static MethodDefinition[] GetHooks(TypeDefinitionCollection scrollsTypes, int version) {
             try {
                 return new MethodDefinition[] {
-                    scrollsTypes["ChatUI"].Methods.GetMethod("OnGUI")[0]
+                    scrollsTypes["ChatUI"].Methods.GetMethod("OnGUI")[0],
+                    scrollsTypes["ChatRooms"].Methods.GetMethod("LeaveRoom", new Type[]{typeof(string)})
                 };
             }
             catch {
@@ -46,6 +48,15 @@ namespace ClickableLinksInChat.mod {
         }
 
         public override bool BeforeInvoke(InvocationInfo info, out object returnValue) {
+            if (info.target is ChatRooms && info.targetMethod.Equals("LeaveRoom")) {
+                string room = (string) info.arguments[0];
+                Dictionary<string, ChatRooms.RoomLog> chatLogs = (Dictionary<string, ChatRooms.RoomLog>)typeof(ChatRooms).GetField("chatLogs", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
+                if (chatLogs.ContainsKey(room)) {
+                    if (roomLinkCache.ContainsKey(chatLogs[room])) {
+                        roomLinkCache.Remove(chatLogs[room]);
+                    }
+                }
+            }
             returnValue = null;
             return false;
         }
@@ -74,10 +85,24 @@ namespace ClickableLinksInChat.mod {
                         GUI.color = debug ? Color.cyan : Color.clear;
                         GUILayout.Label(current.timestamp, timeStampStyle, new GUILayoutOption[] {
                             GUILayout.Width(20f + (float)Screen.height * 0.042f)});
-                        Match linkFound = linkFinder.Match(current.text);
-                        if (linkFound.Success) {
+
+                        if (!roomLinkCache.ContainsKey(currentRoomChatLog)) {
+                            roomLinkCache.Add(currentRoomChatLog, new Dictionary<ChatRooms.ChatLine, string>());
+                        }
+                        Dictionary<ChatRooms.ChatLine, string> linkCache = roomLinkCache[currentRoomChatLog];
+                        if (!linkCache.ContainsKey(current)) {
+                            Match linkFound = linkFinder.Match(current.text);
+                            if (linkFound.Success) {
+                                linkCache.Add(current, linkFound.Value);
+                            }
+                            else {
+                                linkCache.Add(current, null);
+                            }
+                        }
+                        
+                        if (linkCache[current] != null) {
                             if (GUILayout.Button(current.text, chatLogStyle, new GUILayoutOption[] { GUILayout.Width(chatlogAreaInner.width - (float)Screen.height * 0.1f - 20f) })) {
-                                Process.Start(linkFound.Value);
+                                Process.Start((string)linkCache[current]);
                             }
                         }
                         else {
