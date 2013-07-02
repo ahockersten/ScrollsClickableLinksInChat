@@ -31,7 +31,7 @@ namespace ClickableLinksInChat.mod {
         }
 
         public static int GetVersion() {
-            return 2;
+            return 3;
         }
 
         public static MethodDefinition[] GetHooks(TypeDefinitionCollection scrollsTypes, int version) {
@@ -74,14 +74,14 @@ namespace ClickableLinksInChat.mod {
                     Rect chatlogAreaInner = (Rect)typeof(ChatUI).GetField("chatlogAreaInner", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
                     Vector2 chatScroll = (Vector2)typeof(ChatUI).GetField("chatScroll", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
 
+                    // set invisible draw color. We want the layout effects of drawing stuff, but we let the 
+                    // original code do all of the actual drawing
+                    Color oldColor = GUI.color;
+                    GUI.color = debug ? Color.cyan : Color.clear;
                     GUILayout.BeginArea(chatlogAreaInner);
                     GUILayout.BeginScrollView(chatScroll, new GUILayoutOption[] { GUILayout.Width(chatlogAreaInner.width), GUILayout.Height(chatlogAreaInner.height) });
                     foreach (ChatRooms.ChatLine current in currentRoomChatLog.getLines()) {
                         GUILayout.BeginHorizontal(new GUILayoutOption[0]);
-                        // set invisible draw color. We want the layout effects of drawing stuff, but we let the 
-                        // original code do all of the actual drawing
-                        Color oldColor = GUI.color;
-                        GUI.color = debug ? Color.cyan : Color.clear;
                         GUILayout.Label(current.timestamp, timeStampStyle, new GUILayoutOption[] {
                             GUILayout.Width(20f + (float)Screen.height * 0.042f)});
 
