@@ -78,7 +78,11 @@ namespace ClickableLinksInChat.mod {
                     // set invisible draw color. We want the layout effects of drawing stuff, but we let the 
                     // original code do all of the actual drawing
                     Color oldColor = GUI.color;
+                    // disable warning that one of these expressions is unreachable (due to debug being const)
+                    #pragma warning disable 0429
                     GUI.color = debug ? Color.cyan : Color.clear;
+                    #pragma warning restore 0429
+
                     GUILayout.BeginArea(chatlogAreaInner);
                     GUILayout.BeginScrollView(chatScroll, new GUILayoutOption[] { GUILayout.Width(chatlogAreaInner.width), GUILayout.Height(chatlogAreaInner.height) });
                     foreach (ChatRooms.ChatLine current in currentRoomChatLog.getLines()) {
