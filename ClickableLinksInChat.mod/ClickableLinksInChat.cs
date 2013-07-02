@@ -11,7 +11,8 @@ using Mono.Cecil;
 
 namespace ClickableLinksInChat.mod {
     public class ClickableLinksInChat : BaseMod {
-        private bool debug = false;
+        private const bool debug = false;
+
         private ChatUI target = null;
         private ChatRooms chatRooms;
         private GUIStyle timeStampStyle;
