@@ -1,6 +1,8 @@
 ClickableLinksInChat
 ==============
 
+THIS IS NOW DEPRECATED! Please use ScrollsChatImprovements, available at https://github.com/ahockersten/ScrollsChatImprovements instead!
+
 A mod for Scrolls that allows you to click a link in the chat to open it in the default web browser. It's a bit rough, and has some non-obvious limitations.
 
 * It needs to be higher priority than my other mod (UserMenuInChat) to work as intended
